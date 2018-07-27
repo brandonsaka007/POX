@@ -1,14 +1,20 @@
-#imports
+# imports
 import os
+import time
 
 
-#Vars
+# Vars
 server_name = "www.test.com"
 proxy_pass = "0.0.0.0:0000"
 ssl_certificate = "/etc/letsencrypt/live/"+server_name+"/fullchain.pem"
 ssl_certificate_key = "/etc/letsencrypt/live/"+server_name+"/privkey.pem"
 ssl_trusted_certificate = "/etc/letsencrypt/live/"+server_name+"/fullchain.pem"
+ext_ssl = "na"
+ssl_proxy = "na"
 chk1 = 0
+cert_is_good = 0
+ssl_proxy_int = "http://"
+
 print ("""
     >>>SDC POX Utility<<<
 
@@ -25,10 +31,11 @@ if ans == "1":
     print ('Selection 1')
     while chk1 is 0:
         print "What is the full TLD of the site you would like to add?"
+        print":"
         server_name = raw_input("")
         print "The Site you would like to add is:"
         print ">>" + server_name + "<<"
-        print "Is this correct? y/n"
+        print "Is this correct? (y/n):"
         yn = raw_input("")
         if yn == "y":
             chk1 = 1
@@ -36,24 +43,29 @@ if ans == "1":
             chk1 = 0
     chk1 = 0
     while chk1 is 0:
-        print 'Enter the IP address and port of the app you wish to proxy (in the format: ipddress:port):'
+        print 'Enter the IP address and port of the app you wish to proxy (in the format: ipaddress:port):'
         proxy_pass = raw_input("")
-        print "Is this correct: "+proxy_pass
-        print "y/n"
-        yn = raw_input("")
+        print "Is this correct: " + proxy_pass
+        yn = raw_input("(y/n): ")
         if yn == "y":
-            while chk1 == 0:
-                print "Is "+proxy_pass+" an SSL protocol (i.e. Https://"+proxy_pass+')'
-                print "(y/n)"
-                yn = raw_input("")
-                if yn == "y":
-                    ssl_proxy = 1
-                    chk1 = 1
-                if yn == "n":
-                    ssl_proxy = 0
-                    chk1 = 1
+            chk2 = 0
+            while chk2 is 0:
+                print "Is " + proxy_pass + " an SSL protocol (i.e. https://" + proxy_pass + ')'
+                print "(y/n):"
+                yn2 = raw_input("")
+                if yn2 == "n":
+                    ssl_proxy = "False"
+                    ssl_proxy_int = "http://"
+                    chk2 = 1
+                    print "SSL proxy has been set to: " + ssl_proxy
+                elif yn2 == "y":
+                    ssl_proxy = "True"
+                    ssl_proxy_int = "https://"
+                    chk2 = 1
+                    print "SSL proxy has been set to: " + ssl_proxy
                 else:
-                    chk1 =0
+                    print "Error"
+                    chk2 = 0
         else:
             chk1 = 0
     print "Will the user facing site need HTTPS/SSL (i.e https://"+server_name+")"
@@ -61,34 +73,129 @@ if ans == "1":
       1. HTTPS and HTTP
       2. HTTPS Only
       3. HTTP Only 
-      4.Exit/Quit
-            """)
+               """)
     print "Enter selection:"
-    httpvar = raw_input("")
-    if httpvar == 1:
-        print "1"
+    ssl_opt = raw_input("")
+    if ssl_opt == "1":
+        print "Allowing both HTTPS and HTTP connections."
+        ext_ssl = "both"
         ssl_certificate = "/etc/letsencrypt/live/" + server_name + "/fullchain.pem"
         ssl_certificate_key = "/etc/letsencrypt/live/" + server_name + "/privkey.pem"
         ssl_trusted_certificate = "/etc/letsencrypt/live/" + server_name + "/fullchain.pem"
-        cert_exists = os.path.isdir(ssl_certificate)
-        if cert_exists == "True":
-            print "idk"
+    if ssl_opt == "2":
+        print "Allowing only HTTPS connections."
+        ext_ssl = "https"
+        ssl_certificate = "/etc/letsencrypt/live/" + server_name + "/fullchain.pem"
+        ssl_certificate_key = "/etc/letsencrypt/live/" + server_name + "/privkey.pem"
+        ssl_trusted_certificate = "/etc/letsencrypt/live/" + server_name + "/fullchain.pem"
+    if ssl_opt == "3":
+            print "Allowing only HTTP connections."
+            ext_ssl = "http"
+
+
+    print """
+            Dose this information look correct: """
+    print """   Server Name: """ + server_name
+    print """   Connection default (https or http) : """ + ext_ssl
+    print """   Local Server address: """ + proxy_pass
+    print """   Internal SSL Connection to """ + proxy_pass + """ : """ + ssl_proxy
+
+    confirm = raw_input("Confirm info (y/n): ")
+    if confirm == "y":
+        print "leggo :D "
+        cert_exists = os.path.isfile(ssl_certificate)
+        if cert_exists == True:
+            print "Skipping Cert Generation"
         else:
             os.system('sudo service ngixn stop')
-            os.system('sudo letsencrypt certonly -d '+server_name+ ' > /tmp/certoutput')
+            os.system('sudo letsencrypt certonly -d ' + server_name + ' > /tmp/certoutput')
             cert_gen = 0
-            while cert_gen == 0:
+            while cert_gen < 20:
                 for line in open("/tmp/certoutput"):
                     if "Congratulations!" in line:
-                        print line
-                        cert_gen = 1
+                        cert_gen = 21
+                        print "Congratulations! Cert has ben generated for: https://" + server_name
+                        os.system('sudo service nginx start')
+                        print "Restarted Nginx"
+                        cert_is_good = 1
                     else:
-                        cert_gen = 0
+                        time.sleep(1)
+                        cert_gen = 1 + cert_gen
+            if cert_is_good == 1:
+                print ""
+            else:
+                os.system('sudo service nginx start')
+                print "Something went wrong with cert generation quiting..."
+                print "Please check if DNS entry is publicly accessible and points to SDC"
+                quit()
+        print "Creating nginx conf file..."
 
-    if httpvar == 2:
-            print "2"
-    if httpvar == 3:
-            print "3"
+        if ext_ssl == "both":
+            with open('/etc/nginx/sites-available/' + server_name + '.conf', 'a') as conf_file:
+                conf_file.write("""server {
+        listen 80;
+        server_name """ + server_name + """;
+        return  302 https://""" + server_name + """"$request_uri;
+
+}
+
+server {
+        listen 172.16.20.20:443;
+        server_name """ + server_name + """;
+
+        ssl_certificate """ + ssl_certificate + """;
+        ssl_certificate_key """ + ssl_certificate_key + """;
+        ssl_trusted_certificate """ + ssl_trusted_certificate + """;
+
+        access_log /var/log/nginx/""" + server_name + """.access.log;
+        error_log /var/log/nginx/""" + server_name + """.error.log;
+
+        location / {
+                proxy_set_header Host $http_host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_redirect off;
+                proxy_pass """ + ssl_proxy_int + proxy_pass + """;
+                proxy_read_timeout 90;
+                proxy_ssl_verify off;
+        }
+}""")
+            print "Done"
+        if ext_ssl == "http":
+            print "not implemented cuz dont use http"
+        if ext_ssl == "https":
+            with open('/etc/nginx/sites-available/' + server_name + '.conf', 'a') as conf_file:
+                conf_file.write("""server {
+                listen 172.16.20.20:443;
+                server_name """ + server_name + """;
+
+                ssl_certificate """ + ssl_certificate + """;
+                ssl_certificate_key """ + ssl_certificate_key + """;
+                ssl_trusted_certificate """ + ssl_trusted_certificate + """;
+
+                access_log /var/log/nginx/""" + server_name + """.access.log;
+                error_log /var/log/nginx/""" + server_name + """.error.log;
+
+                location / {
+                        proxy_set_header Host $http_host;
+                        proxy_set_header X-Real-IP $remote_addr;
+                        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                        proxy_redirect off;
+                        proxy_pass """ + ssl_proxy_int + proxy_pass + """;
+                        proxy_read_timeout 90;
+                        proxy_ssl_verify off;
+                }
+        }""")
+            print "Done"
+        print "Moving file into production..."
+        os.system ('sudo mv /etc/nginx/sites-available/' + server_name + '.conf /etc/nginx/sites-enabled/' + server_name + '.conf')
+        print "Restarting Nginx..."
+        os.system ('sudo service nginx restart')
+        print "Nginx Restarted..."
+        print "New site successfully configured!"
+        quit()
+    else:
+        quit()
 
 
 else:
