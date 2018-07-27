@@ -121,7 +121,7 @@ if ans == "1":
             cert_is_good = 1
         else:
             print "Stoping Nginx..."
-            os.system('sudo service ngixn stop')
+            os.system('sudo service nginx stop')
             print "Nginx Stopped..."
             print "Executing LetsEncrypt..."
             os.system('sudo letsencrypt certonly -d ' + server_name + ' > /tmp/certoutput')
@@ -138,6 +138,7 @@ if ans == "1":
                     else:
                         time.sleep(1)
                         cert_gen = 1 + cert_gen
+                        print "Killing in 20: "  + cert_gen
                         cert_is_good = 0
             if cert_is_good == 1:
                 print "Creating nginx conf file..."
