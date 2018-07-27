@@ -216,5 +216,5 @@ if ans == "1":
 
 
 else:
-    print ('not implemented')
+    print ('Not implemented, quiting...')
     quit()
