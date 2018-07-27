@@ -37,7 +37,15 @@ if ans == "1":
         print "Is this correct?"
         yn = raw_input("(y/n): ")
         if yn == "y":
-            chk1 = 1
+            print "Checking if site is in nginx database..."
+            site_exists = os.path.isfile("/etc/nginx/sites-enabled/" + server_name + ".conf")
+            site_exists = os.path.isfile("/etc/nginx/sites-available/" + server_name + ".conf")
+            if site_exists is True:
+                print "Site is configured, quitting..."
+                quit()
+            else:
+                chk1 = 1
+                print "Check PASSED, continuing..."
         else:
             chk1 = 0
     chk1 = 0
