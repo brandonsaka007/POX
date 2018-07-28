@@ -231,7 +231,61 @@ if ans == "1":
         print "Failed to verify, quitting..."
         quit()
 
+elif ans == "2":
+    os.system("clear")
+    chk4 = 0
+    while chk4 == 0:
+        print "What site would you like to disable:"
+        os.system("ls /etc/nginx/sites-enabled | grep -Po '.*(?=\.)'")
+        dis = raw_input("Choice: ")
+        os.system("clear")
+        print "You chose: " + dis + " is this correct?"
+        yn3 = raw_input("(y/n): ")
+        if yn3 == "y":
+            chk4 = 1
+            os.system("clear")
+            os.system("mv /etc/nginx/sites-enabled/" + dis + ".conf /etc/nginx/sites-available/" + dis + ".conf")
+            os.system("service nginx restart")
+            print dis + " is now disabled."
+            quit()
+        else:
+            chk4 = 0
 
+elif ans == "3":
+    os.system("clear")
+    chk4 = 0
+    while chk4 == 0:
+        print "What site would you like to enable:"
+        os.system("ls /etc/nginx/sites-available | grep -Po '.*(?=\.)'")
+        ena = raw_input("Choice: ")
+        os.system("clear")
+        print "You chose: " + ena + " is this correct?"
+        yn3 = raw_input("(y/n): ")
+        if yn3 == "y":
+            chk4 = 1
+            os.system("clear")
+            os.system("mv /etc/nginx/sites-available/" + ena + ".conf /etc/nginx/sites-enabled/" + ena + ".conf")
+            print "Testing stability..."
+            os.system("sudo service nginx restart")
+            os.system("sudo service nginx status > /tmp/status")
+            for line in open("/tmp/enb"):
+                if "active (running)" in line:
+                    print "Site passed checks and is now active"
+                    quit()
+                else:
+                    "Site did NOT pass checks possable config error, reverting changes..."
+                    os.system("mv /etc/nginx/sites-enabled/" + ena + ".conf /etc/nginx/sites-available/" + ena + ".conf")
+                    os.system("sudo service nginx restart")
+                    os.system("sudo service nginx status > /tmp/status")
+                    for line in open("/tmp/enb"):
+                        if "active (running)" in line:
+                            print "Changes reverted..."
+                            quit()
+                        else:
+                            "MAJOR FAILURE PLEASE MANUALY CHECK NGINX!!! "
+                            quit()
+        else:
+            chk4 = 0
 else:
     print ('Not implemented, quiting...')
     quit()
