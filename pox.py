@@ -131,7 +131,7 @@ if ans == "1":
             print "LetsEncrypt started waiting..."
             print "Checking Cert..."
             cert_gen = 0
-            while cert_gen < 20:
+            while cert_gen < 5:
                 for line in open("/tmp/certoutput"):
                     if "Congratulations!" in line:
                         cert_gen = 21
@@ -142,7 +142,8 @@ if ans == "1":
                     else:
                         time.sleep(1)
                         cert_gen = 1 + cert_gen
-                        print "Killing in 20: " + cert_gen
+                        os.system("clear")
+                        print "Waiting..."
                         cert_is_good = 0
             if cert_is_good == 1:
                 print "Creating nginx conf file..."
