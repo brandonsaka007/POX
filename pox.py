@@ -41,7 +41,8 @@ if ans == "1":
             print "Checking if site is in nginx database..."
             site_exists = os.path.isfile("/etc/nginx/sites-enabled/" + server_name + ".conf")
             site_exists = os.path.isfile("/etc/nginx/sites-available/" + server_name + ".conf")
-            os.system("nslookup " + server_name + " > /tmp/nscheck")
+            # os.system("nslookup " + server_name + " > /tmp/nscheck")
+            # TODO: implment check ^
             if site_exists is True:
                 print "Site is configured, quitting..."
                 quit()
