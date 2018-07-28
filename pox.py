@@ -223,6 +223,8 @@ if ans == "1":
             else:
                 os.system('sudo service nginx start')
                 print "Something went wrong with cert generation quiting..."
+                print "Debug: "
+                os.system("cat /tmp/certoutput")
                 print "Please check if DNS entry is publicly accessible and points to SDC"
                 quit()
     else:
