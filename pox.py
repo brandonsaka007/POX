@@ -268,24 +268,21 @@ elif ans == "3":
             print "Testing stability..."
             os.system("sudo service nginx restart")
             os.system("sudo service nginx status > /tmp/status")
-            print "test.."
-            for line in open("/tmp/status"):
-                print "test 2"
-                if "active (running)" in line:
-                    print "Site passed checks and is now active"
+            print "Testing..."
+            if 'active (running)' in open('/tmp/status').read():
+                print "Site passed checks and is now active"
+                quit()
+            else:
+                print "Site did NOT pass checks possable config error, reverting changes..."
+                os.system("mv /etc/nginx/sites-enabled/" + ena + ".conf /etc/nginx/sites-available/" + ena + ".conf")
+                os.system("sudo service nginx restart")
+                os.system("sudo service nginx status > /tmp/status")
+                if 'active (running)' in open('/tmp/status').read():
+                    print "Changes reverted..."
                     quit()
                 else:
-                    "Site did NOT pass checks possable config error, reverting changes..."
-                    os.system("mv /etc/nginx/sites-enabled/" + ena + ".conf /etc/nginx/sites-available/" + ena + ".conf")
-                    os.system("sudo service nginx restart")
-                    os.system("sudo service nginx status > /tmp/status")
-                    for line in open("/tmp/status"):
-                        if "active (running)" in line:
-                            print "Changes reverted..."
-                            quit()
-                        else:
-                            "MAJOR FAILURE PLEASE MANUALY CHECK NGINX!!! "
-                            quit()
+                    print "MAJOR FAILURE PLEASE MANUALY CHECK NGINX!!! "
+                    quit()
         else:
             chk4 = 0
 else:
