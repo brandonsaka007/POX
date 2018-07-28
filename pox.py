@@ -1,6 +1,7 @@
 # imports
 import os
 import time
+import subprocess
 
 
 # Vars
@@ -40,6 +41,7 @@ if ans == "1":
             print "Checking if site is in nginx database..."
             site_exists = os.path.isfile("/etc/nginx/sites-enabled/" + server_name + ".conf")
             site_exists = os.path.isfile("/etc/nginx/sites-available/" + server_name + ".conf")
+            os.system("nslookup " + server_name + " > /tmp/nscheck")
             if site_exists is True:
                 print "Site is configured, quitting..."
                 quit()
@@ -63,7 +65,7 @@ if ans == "1":
                     ssl_proxy = "False"
                     ssl_proxy_int = "http://"
                     chk2 = 1
-                    chk1 = 11
+                    chk1 = 1
                     print "SSL proxy has been set to: " + ssl_proxy
                 elif yn2 == "y":
                     ssl_proxy = "True"
@@ -124,7 +126,8 @@ if ans == "1":
             os.system('sudo service nginx stop')
             print "Nginx Stopped..."
             print "Executing LetsEncrypt..."
-            os.system('sudo letsencrypt certonly -d ' + server_name + ' > /tmp/certoutput')
+            subprocess.call('sudo letsencrypt certonly -d ' + server_name + ' > /tmp/certoutput', shell=True)
+            print "LetsEncrypt started waiting..."
             print "Checking Cert..."
             cert_gen = 0
             while cert_gen < 20:
@@ -138,7 +141,7 @@ if ans == "1":
                     else:
                         time.sleep(1)
                         cert_gen = 1 + cert_gen
-                        print "Killing in 20: "  + cert_gen
+                        print "Killing in 20: " + cert_gen
                         cert_is_good = 0
             if cert_is_good == 1:
                 print "Creating nginx conf file..."
