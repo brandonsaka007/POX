@@ -268,7 +268,9 @@ elif ans == "3":
             print "Testing stability..."
             os.system("sudo service nginx restart")
             os.system("sudo service nginx status > /tmp/status")
+            print "test.."
             for line in open("/tmp/status"):
+                print "test 2"
                 if "active (running)" in line:
                     print "Site passed checks and is now active"
                     quit()
