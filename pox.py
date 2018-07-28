@@ -16,6 +16,7 @@ chk1 = 0
 cert_is_good = 0
 ssl_proxy_int = "http://"
 
+os.system("clear")
 print ("""
     >>>SDC POX Utility<<<
 
@@ -31,6 +32,7 @@ ans = raw_input("Choice: ")
 if ans == "1":
     print ('Selection 1')
     while chk1 is 0:
+        os.system("clear")
         print "What is the full TLD of the site you would like to add?"
         server_name = raw_input(": ")
         print "The Site you would like to add is:"
