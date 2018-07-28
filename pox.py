@@ -38,6 +38,7 @@ if ans == "1":
         print "Is this correct?"
         yn = raw_input("(y/n): ")
         if yn == "y":
+            os.system("clear")
             print "Checking if site is in nginx database..."
             site_exists = os.path.isfile("/etc/nginx/sites-enabled/" + server_name + ".conf")
             site_exists = os.path.isfile("/etc/nginx/sites-available/" + server_name + ".conf")
@@ -54,14 +55,16 @@ if ans == "1":
     chk1 = 0
     while chk1 is 0:
         print 'Enter the IP address and port of the app you wish to proxy (in the format: ipaddress:port):'
-        proxy_pass = raw_input("")
+        proxy_pass = raw_input(": ")
         print "Is this correct: " + proxy_pass
         yn = raw_input("(y/n): ")
         if yn == "y":
             chk2 = 0
+            os.system("clear")
             while chk2 is 0:
                 print "Is " + proxy_pass + " an SSL protocol (i.e. https://" + proxy_pass + ')'
                 yn2 = raw_input("(y/n): ")
+                os.system("clear")
                 if yn2 == "n":
                     ssl_proxy = "False"
                     ssl_proxy_int = "http://"
@@ -87,6 +90,7 @@ if ans == "1":
     print "Enter selection:"
     ssl_opt = raw_input(": ")
     chk3 = "0"
+    os.system("clear")
     while chk3 == "0":
         if ssl_opt == "1":
             chk3 = "1"
@@ -109,6 +113,7 @@ if ans == "1":
             print "Error Not Implemented"
             chk3 = 0
 
+    os.system("clear")
     print """   Dose this information look correct: """
     print """   Server Name: """ + server_name
     print """   External connection default (https or http) : """ + ext_ssl
@@ -117,6 +122,7 @@ if ans == "1":
 
     confirm = raw_input("Confirm info (y/n): ")
     if confirm == "y":
+        os.system("clear")
         print "leggo :D... "
         cert_exists = os.path.isfile(ssl_certificate)
         if cert_exists == True:
@@ -128,10 +134,11 @@ if ans == "1":
             print "Nginx Stopped..."
             print "Executing LetsEncrypt..."
             subprocess.call('sudo letsencrypt certonly -d ' + server_name + ' > /tmp/certoutput', shell=True)
+            os.system("clear")
             print "LetsEncrypt started waiting..."
             print "Checking Cert..."
             cert_gen = 0
-            while cert_gen < 5:
+            while cert_gen < 0:
                 for line in open("/tmp/certoutput"):
                     if "Congratulations!" in line:
                         cert_gen = 21
